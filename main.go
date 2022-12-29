@@ -1,21 +1,23 @@
 package main
 
 import (
-	"bytes"
-	"crypto/sha256"
+	"fmt"
+
+	"github.com/luisedmc/blockgo/blockchain"
 )
 
-// DeriveHash derives a hash from the block's data
-func (b *Block) DeriveHash() {
-	info := bytes.Join([][]byte{
-		b.Data,
-		b.PrevHash,
-	}, []byte{})
-	hash := sha256.Sum256(info)
-
-	b.Hash = hash[:]
-}
-
 func main() {
+	chain := blockchain.InitBlockchain()
 
+	chain.AddBlock("First Block after Genesis.")
+	chain.AddBlock("Second Block after Genesis.")
+	chain.AddBlock("Third Block after Genesis.")
+
+	// Displaying the Blockchain
+	for _, block := range chain.Blocks {
+		fmt.Printf("Previous Hash: %x\n", block.PrevHash)
+		fmt.Printf("Block Data: %s\n", block.Data)
+		fmt.Printf("Block Hash: %x\n", block.Hash)
+		fmt.Println()
+	}
 }
