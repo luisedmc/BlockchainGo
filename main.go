@@ -5,12 +5,7 @@ import (
 	"crypto/sha256"
 )
 
-type Block struct {
-	Hash     []byte
-	Data     []byte
-	PrevHash []byte
-}
-
+// DeriveHash derives a hash from the block's data
 func (b *Block) DeriveHash() {
 	info := bytes.Join([][]byte{
 		b.Data,
