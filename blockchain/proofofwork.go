@@ -71,6 +71,18 @@ func (pow *ProofOfWork) Run() (int, []byte) {
 	return nonce, hash[:]
 }
 
+// Validate validates a Hash
+func (pow *ProofOfWork) Validate() bool {
+	var intHash big.Int
+
+	data := pow.InitData(pow.Block.Nonce)
+	hash := sha256.Sum256(data)
+
+	intHash.SetBytes(hash[:])
+
+	return intHash.Cmp(pow.Target) == -1
+}
+
 // ToHex converts an int to a slice of bytes
 func ToHex(data int64) []byte {
 	buff := new(bytes.Buffer)
