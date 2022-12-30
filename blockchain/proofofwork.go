@@ -2,6 +2,8 @@ package blockchain
 
 import (
 	"bytes"
+	"encoding/binary"
+	"log"
 	"math/big"
 )
 
@@ -12,7 +14,7 @@ type ProofOfWork struct {
 	Target *big.Int
 }
 
-// NewProof builds and returns a new Proof of Work
+// NewProof build and return a new Proof of Work
 func NewProof(b *Block) *ProofOfWork {
 	target := big.NewInt(1)
 	target.Lsh(target, uint(256-Difficulty))
@@ -31,9 +33,22 @@ func (pow *ProofOfWork) InitData(nonce int) []byte {
 		[][]byte{
 			pow.Block.PrevHash,
 			pow.Block.Data,
+			ToHex(int64(nonce)),
+			ToHex(int64(Difficulty)),
 		},
 		[]byte{},
 	)
 
 	return data
+}
+
+// ToHex converts an int to a slice of bytes
+func ToHex(data int64) []byte {
+	buff := new(bytes.Buffer)
+	err := binary.Write(buff, binary.BigEndian, data)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	return buff.Bytes()
 }
