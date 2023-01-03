@@ -15,13 +15,38 @@ type Blockchain struct {
 	Database *badger.DB
 }
 
-// AddBlock adds a block to the blockchain.
+// AddBlock adds a new Block to the Blockchain.
 func (chain *Blockchain) AddBlock(data string) {
-	prevBlock := chain.Blocks[len(chain.Blocks)-1]
+	var lastHash []byte
 
-	newBlock := CreateBlock(data, prevBlock.Hash)
+	err := chain.Database.View(func(txn *badger.Txn) error {
+		item, err := txn.Get([]byte("lh"))
+		HandleErrors(err)
 
-	chain.Blocks = append(chain.Blocks, newBlock)
+		err = item.Value(func(val []byte) error {
+			lastHash = append([]byte{}, val...)
+
+			return nil
+		})
+
+		return err
+	})
+
+	HandleErrors(err)
+
+	newBlock := CreateBlock(data, lastHash)
+
+	err = chain.Database.Update(func(txn *badger.Txn) error {
+		err := txn.Set(newBlock.Hash, newBlock.Serialize())
+		HandleErrors(err)
+		err = txn.Set([]byte("lh"), newBlock.Hash)
+
+		chain.LastHash = newBlock.Hash
+
+		return err
+	})
+
+	HandleErrors(err)
 }
 
 // InitBlockchain creates a new Blockchain with genesis Block.
