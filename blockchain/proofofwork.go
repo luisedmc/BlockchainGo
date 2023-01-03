@@ -10,14 +10,14 @@ import (
 	"math/big"
 )
 
-const Difficulty = 12
+const Difficulty = 18
 
 type ProofOfWork struct {
 	Block  *Block
 	Target *big.Int
 }
 
-// NewProof build and return a new Proof of Work
+// NewProof build and return a new Proof of Work.
 func NewProof(b *Block) *ProofOfWork {
 	target := big.NewInt(1)
 	target.Lsh(target, uint(256-Difficulty))
@@ -30,7 +30,7 @@ func NewProof(b *Block) *ProofOfWork {
 	return pow
 }
 
-// InitData returns the data to be hashed
+// InitData returns the data to be hashed.
 func (pow *ProofOfWork) InitData(nonce int) []byte {
 	data := bytes.Join(
 		[][]byte{
@@ -45,7 +45,7 @@ func (pow *ProofOfWork) InitData(nonce int) []byte {
 	return data
 }
 
-// Run runs a Proof of Work
+// Run runs a Proof of Work.
 func (pow *ProofOfWork) Run() (int, []byte) {
 	var intHash big.Int
 	var hash [32]byte
@@ -71,7 +71,7 @@ func (pow *ProofOfWork) Run() (int, []byte) {
 	return nonce, hash[:]
 }
 
-// Validate validates a Hash
+// Validate validates a Hash.
 func (pow *ProofOfWork) Validate() bool {
 	var intHash big.Int
 
@@ -83,7 +83,7 @@ func (pow *ProofOfWork) Validate() bool {
 	return intHash.Cmp(pow.Target) == -1
 }
 
-// ToHex converts an int to a slice of bytes
+// ToHex converts an int to a slice of bytes.
 func ToHex(data int64) []byte {
 	buff := new(bytes.Buffer)
 	err := binary.Write(buff, binary.BigEndian, data)

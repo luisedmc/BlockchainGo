@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/gob"
+	"log"
 )
 
 // Block represents each 'item' in the blockchain.
@@ -53,7 +54,9 @@ func (b *Block) Serialize() []byte {
 	encoder := gob.NewEncoder(&result)
 
 	err := encoder.Encode(b)
-	HandleErrors(err)
+	if err != nil {
+		log.Panic(err)
+	}
 
 	return result.Bytes()
 }
@@ -65,7 +68,9 @@ func Deserialize(data []byte) *Block {
 	decoder := gob.NewDecoder(bytes.NewReader(data))
 
 	err := decoder.Decode(&block)
-	HandleErrors(err)
+	if err != nil {
+		log.Panic(err)
+	}
 
 	return &block
 }
