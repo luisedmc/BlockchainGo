@@ -31,7 +31,6 @@ func (chain *Blockchain) AddBlock(data string) {
 
 		return err
 	})
-
 	HandleErrors(err)
 
 	newBlock := CreateBlock(data, lastHash)
@@ -90,7 +89,6 @@ func InitBlockchain() *Blockchain {
 			return err
 		}
 	})
-
 	HandleErrors(err)
 
 	blockchain := Blockchain{
@@ -99,4 +97,39 @@ func InitBlockchain() *Blockchain {
 	}
 
 	return &blockchain
+}
+
+// Iterator iterates over the Blockchain.
+func (chain *Blockchain) Iterator() *Blockchain {
+	iterator := &Blockchain{
+		LastHash: chain.LastHash,
+		Database: chain.Database,
+	}
+
+	return iterator
+}
+
+func (iter *Blockchain) Next() *Block {
+	var block *Block
+	var blockData []byte
+
+	err := iter.Database.View(func(txn *badger.Txn) error {
+		item, err := txn.Get(iter.LastHash)
+		HandleErrors(err)
+
+		err = item.Value(func(val []byte) error {
+			blockData = append([]byte{}, val...)
+
+			return nil
+		})
+		HandleErrors(err)
+
+		block = Deserialize(blockData)
+
+		return err
+	})
+	HandleErrors(err)
+
+	iter.LastHash = block.PrevHash
+	return block
 }
