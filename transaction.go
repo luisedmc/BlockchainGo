@@ -42,7 +42,7 @@ func (tx *Transaction) SetID() {
 	tx.ID = hash[:]
 }
 
-// IsCoinBase checks if transaction is coin base.
+// CoinBaseTX creates a new coinbase transaction.
 func CoinBaseTX(to, data string) *Transaction {
 	if data == "" {
 		data = fmt.Sprintf("Coins to %s", to)
@@ -68,4 +68,9 @@ func CoinBaseTX(to, data string) *Transaction {
 	tx.SetID()
 
 	return &tx
+}
+
+// IsCoinBase checks if transaction is coin base.
+func (tx *Transaction) IsCoinBase() bool {
+	return len(tx.Inputs) == 1 && len(tx.Inputs[0].ID) == 0 && tx.Inputs[0].Output == -1
 }
