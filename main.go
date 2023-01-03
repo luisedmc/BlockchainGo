@@ -1,28 +1,19 @@
 package main
 
 import (
-	"fmt"
-	"strconv"
-
 	"github.com/luisedmc/blockgo/blockchain"
+	"os"
 )
 
 func main() {
+	defer os.Exit(0)
+
 	chain := blockchain.InitBlockchain()
+	defer chain.Database.Close()
 
-	chain.AddBlock("First Block after Genesis.")
-	chain.AddBlock("Second Block after Genesis.")
-	chain.AddBlock("Third Block after Genesis.")
-
-	// Displaying the Blockchain
-	for _, block := range chain.Blocks {
-		fmt.Printf("Previous Hash: %x\n", block.PrevHash)
-		fmt.Printf("Block Data: %s\n", block.Data)
-		fmt.Printf("Block Hash: %x\n", block.Hash)
-		fmt.Println()
-
-		pow := blockchain.NewProof(block)
-		fmt.Printf("Proof of Work: %s\n", strconv.FormatBool(pow.Validate()))
-		fmt.Println()
+	cli := CommandLine{
+		blockchain: chain,
 	}
+
+	cli.Run()
 }
