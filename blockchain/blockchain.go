@@ -3,12 +3,16 @@ package blockchain
 import (
 	"fmt"
 	"log"
+	"os"
+	"runtime"
 
 	"github.com/dgraph-io/badger/v3"
 )
 
 const (
-	dbPath = "./tmp/blocks"
+	dbPath      = "./tmp/blocks"
+	dbFile      = "./tmp/blocks/MANIFEST"
+	genesisData = "First Transaction from Genesis"
 )
 
 type Blockchain struct {
@@ -17,7 +21,7 @@ type Blockchain struct {
 }
 
 // AddBlock adds a new Block to the Blockchain.
-func (chain *Blockchain) AddBlock(data string) {
+func (chain *Blockchain) AddBlock(transactions []*Transaction) {
 	var lastHash []byte
 
 	err := chain.Database.View(func(txn *badger.Txn) error {
@@ -38,7 +42,7 @@ func (chain *Blockchain) AddBlock(data string) {
 		log.Panic(err)
 	}
 
-	newBlock := CreateBlock(data, lastHash)
+	newBlock := CreateBlock(transactions, lastHash)
 
 	err = chain.Database.Update(func(txn *badger.Txn) error {
 		err := txn.Set(newBlock.Hash, newBlock.Serialize())
@@ -58,8 +62,13 @@ func (chain *Blockchain) AddBlock(data string) {
 }
 
 // InitBlockchain creates a new Blockchain with genesis Block.
-func InitBlockchain() *Blockchain {
+func InitBlockchain(address string) *Blockchain {
 	var lastHash []byte
+
+	if DBExists() {
+		fmt.Println("Blockchain already exists.")
+		runtime.Goexit()
+	}
 
 	opts := badger.DefaultOptions(dbPath)
 	opts.Dir = dbPath
@@ -72,39 +81,20 @@ func InitBlockchain() *Blockchain {
 	}
 
 	err = db.Update(func(txn *badger.Txn) error {
-		if _, err := txn.Get([]byte("lh")); err == badger.ErrKeyNotFound {
-			fmt.Println("No existing Blockchain found...")
+		cbtx := CoinBaseTX(address, genesisData)
+		genesis := Genesis(cbtx)
 
-			genesis := Genesis()
-			fmt.Println("Genesis Proved")
+		fmt.Println("Genesis created!")
 
-			err = txn.Set(genesis.Hash, genesis.Serialize())
-			if err != nil {
-				log.Panic(err)
-			}
-
-			err = txn.Set([]byte("lh"), genesis.Hash)
-
-			lastHash = genesis.Hash
-
-			return err
-		} else {
-			item, err := txn.Get([]byte("lh"))
-			if err != nil {
-				log.Panic(err)
-			}
-
-			err = item.Value(func(val []byte) error {
-				lastHash = append([]byte{}, val...)
-
-				return nil
-			})
-			if err != nil {
-				log.Panic(err)
-			}
-
-			return err
+		err = txn.Set(genesis.Hash, genesis.Serialize())
+		if err != nil {
+			log.Panic(err)
 		}
+		err = txn.Set([]byte("lh"), genesis.Hash)
+
+		lastHash = genesis.Hash
+
+		return err
 	})
 	if err != nil {
 		log.Panic(err)
@@ -157,4 +147,13 @@ func (iter *Blockchain) Next() *Block {
 
 	iter.LastHash = block.PrevHash
 	return block
+}
+
+// DBExists checks if a Database exists.
+func DBExists() bool {
+	if _, err := os.Stat(dbFile); os.IsNotExist(err) {
+		return false
+	}
+
+	return true
 }
