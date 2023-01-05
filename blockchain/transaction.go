@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/gob"
+	"encoding/hex"
 	"fmt"
 	"log"
 )
@@ -65,6 +66,45 @@ func CoinBaseTX(to, data string) *Transaction {
 		Outputs: []TXOutput{txout},
 	}
 
+	tx.SetID()
+
+	return &tx
+}
+
+// NewTransaction creates a new transaction from one wallet to another.
+func NewTransaction(from, to string, amount int, chain *Blockchain) *Transaction {
+	var inputs []TXInput
+	var outputs []TXOutput
+
+	acc, validOutputs := chain.FindSpendableOutputs(from, amount)
+
+	if acc < amount {
+		log.Panic("Error: Not enough founds!")
+	}
+
+	for txid, outs := range validOutputs {
+		txID, err := hex.DecodeString(txid)
+		if err != nil {
+			log.Panic(err)
+		}
+
+		for _, out := range outs {
+			input := TXInput{txID, out, from}
+			inputs = append(inputs, input)
+		}
+	}
+
+	outputs = append(outputs, TXOutput{amount, to})
+
+	if acc > amount {
+		outputs = append(outputs, TXOutput{acc - amount, from})
+	}
+
+	tx := Transaction{
+		ID:      nil,
+		Inputs:  inputs,
+		Outputs: outputs,
+	}
 	tx.SetID()
 
 	return &tx
