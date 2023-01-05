@@ -1,6 +1,7 @@
 package blockchain
 
 import (
+	"encoding/hex"
 	"fmt"
 	"log"
 	"os"
@@ -149,6 +150,51 @@ func ContinueBlockchain(address string) *Blockchain {
 	}
 
 	return &chain
+}
+
+// FindUnspentTransactions finds and returns all unspent transactions.
+func (chain *Blockchain) FindUnspentTransactions(address string) []Transaction {
+	var unspentTxs []Transaction
+	spentTxOs := make(map[string][]int)
+
+	iter := chain.Iterator()
+
+	for {
+		block := iter.Next()
+		for _, tx := range block.Transactions {
+			txID := hex.EncodeToString(tx.ID)
+
+		Outputs:
+			for outIdx, out := range tx.Outputs {
+				if spentTxOs[txID] != nil {
+					for _, spentOut := range spentTxOs[txID] {
+						if spentOut == outIdx {
+							continue Outputs
+						}
+					}
+				}
+
+				if out.CanBeUnlocked(address) {
+					unspentTxs = append(unspentTxs, *tx)
+				}
+			}
+
+			if !tx.IsCoinBase() {
+				for _, in := range tx.Inputs {
+					if in.CanUnlock(address) {
+						inTxID := hex.EncodeToString(in.ID)
+						spentTxOs[inTxID] = append(spentTxOs[inTxID], in.Output)
+					}
+				}
+			}
+		}
+
+		if len(block.PrevHash) == 0 {
+			break
+		}
+	}
+
+	return unspentTxs
 }
 
 // Iterator iterates over the Blockchain.
