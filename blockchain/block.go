@@ -9,34 +9,37 @@ import (
 
 // Block represents each 'item' in the blockchain.
 type Block struct {
-	Hash     []byte
-	Data     []byte
-	PrevHash []byte
-	Nonce    int
+	Hash         []byte
+	Transactions []*Transaction
+	PrevHash     []byte
+	Nonce        int
 }
 
 // Genesis is the first block of the Blockchain.
-func Genesis() *Block {
-	return CreateBlock("Genesis", []byte{})
+func Genesis(coinbase *Transaction) *Block {
+	return CreateBlock([]*Transaction{coinbase}, []byte{})
 }
 
-// DeriveHash derives a hash from the block's data.
-func (b *Block) DeriveHash() {
-	info := bytes.Join([][]byte{
-		b.Data,
-		b.PrevHash,
-	}, []byte{})
-	hash := sha256.Sum256(info)
+// HashTransactions hashes the transactions in the block.
+func (b *Block) HashTransactions() []byte {
+	var txHashes [][]byte
+	var txHash [32]byte
 
-	b.Hash = hash[:]
+	for _, tx := range b.Transactions {
+		txHashes = append(txHashes, tx.ID)
+	}
+
+	txHash = sha256.Sum256(bytes.Join(txHashes, []byte{}))
+
+	return txHash[:]
 }
 
 // CreateBlock creates and returns a new Block.
-func CreateBlock(data string, prevHash []byte) *Block {
+func CreateBlock(txs []*Transaction, prevHash []byte) *Block {
 	block := &Block{
-		Hash:     []byte{},
-		Data:     []byte(data),
-		PrevHash: prevHash,
+		Hash:         []byte{},
+		Transactions: txs,
+		PrevHash:     prevHash,
 	}
 	pow := NewProof(block)
 	nonce, hash := pow.Run()
