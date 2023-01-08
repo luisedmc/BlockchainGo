@@ -6,8 +6,9 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"fmt"
-	"golang.org/x/crypto/ripemd160"
 	"log"
+
+	"golang.org/x/crypto/ripemd160"
 )
 
 const (
@@ -32,6 +33,7 @@ func NewWallet() *Wallet {
 	return &wallet
 }
 
+// GetAddress returns the wallet address.
 func (w Wallet) GetAddress() []byte {
 	pubHash := PublicHashKey(w.PublicKey)
 
