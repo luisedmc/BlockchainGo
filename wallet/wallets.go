@@ -14,6 +14,32 @@ type Wallets struct {
 	Wallets map[string]*Wallet
 }
 
+// CreateWallets creates a Wallets object and fills it with the wallets from the file.
+func CreateWallets() (*Wallets, error) {
+	wallets := Wallets{}
+	wallets.Wallets = make(map[string]*Wallet)
+
+	err := wallets.LoadFile()
+
+	return &wallets, err
+}
+
+// GetWallet returns the wallet for the given address.
+func (ws Wallets) GetWallet(address string) Wallet {
+	return *ws.Wallets[address]
+}
+
+// GetAllAdresses returns all the addresses in the wallets.
+func (ws *Wallets) GetAllAddresses() []string {
+	var addresses []string
+
+	for address := range ws.Wallets {
+		addresses = append(addresses, address)
+	}
+
+	return addresses
+}
+
 // SaveFile saves the content of the wallets to a file.
 func (ws *Wallets) SaveFile() {
 	var content bytes.Buffer
