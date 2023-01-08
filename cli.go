@@ -8,30 +8,34 @@ import (
 	"runtime"
 	"strconv"
 
+	"github.com/luisedmc/blockgo/wallet"
+
 	"github.com/luisedmc/blockgo/blockchain"
 )
 
 type CommandLine struct{}
 
-// PrintUsage prints command line usage.
-func (cli *CommandLine) PrintUsage() {
+// printUsage prints command line usage.
+func (cli *CommandLine) printUsage() {
 	fmt.Println("Usage: ")
-	fmt.Println("getbalance -address ADDRESS - get balance for address")
-	fmt.Println("createblockchain -address ADDRESS - creates a blockchain")
-	fmt.Println("printchain - Print all blocks in the chain.")
+	fmt.Println("getbalance -address ADDRESS - Get balance for address")
+	fmt.Println("createblockchain -address ADDRESS - Creates a blockchain")
+	fmt.Println("printchain - Print all blocks in the chain")
 	fmt.Println("send -from FROM -to TO -amount AMOUNT - Send amount to")
+	fmt.Println("createwallet - Creates a new Wallet")
+	fmt.Println("listaddresses - List all addresses from wallet file")
 }
 
-// ValidateArgs validates the command line arguments.
-func (cli *CommandLine) ValidateArgs() {
+// validateArgs validates the command line arguments.
+func (cli *CommandLine) validateArgs() {
 	if len(os.Args) < 2 {
-		cli.PrintUsage()
+		cli.printUsage()
 		runtime.Goexit()
 	}
 }
 
-// PrintChain prints the blocks in the chain.
-func (cli *CommandLine) PrintChain() {
+// printChain prints the blocks in the chain.
+func (cli *CommandLine) printChain() {
 	chain := blockchain.ContinueBlockchain("")
 	defer chain.Database.Close()
 	iter := chain.Iterator()
@@ -52,16 +56,16 @@ func (cli *CommandLine) PrintChain() {
 	}
 }
 
-// CreateBlockchain creates a new blockchain DB and adds a genesis block.
-func (cli *CommandLine) CreateBlockchain(address string) {
+// createBlockchain creates a new blockchain DB and adds a genesis block.
+func (cli *CommandLine) createBlockchain(address string) {
 	chain := blockchain.InitBlockchain(address)
 	defer chain.Database.Close()
 
 	fmt.Println("Finished!")
 }
 
-// GetBalance returns the balance of a specific address.
-func (cli *CommandLine) GetBalance(address string) {
+// getBalance returns the balance of a specific address.
+func (cli *CommandLine) getBalance(address string) {
 	chain := blockchain.ContinueBlockchain(address)
 	defer chain.Database.Close()
 
@@ -75,8 +79,8 @@ func (cli *CommandLine) GetBalance(address string) {
 	fmt.Printf("Balance of %s: %d\n", address, balance)
 }
 
-// Send sends an amount from one address to another.
-func (cli *CommandLine) Send(from, to string, amount int) {
+// send sends an amount from one address to another.
+func (cli *CommandLine) send(from, to string, amount int) {
 	chain := blockchain.ContinueBlockchain(from)
 	defer chain.Database.Close()
 
@@ -87,24 +91,47 @@ func (cli *CommandLine) Send(from, to string, amount int) {
 	fmt.Println("Success!")
 }
 
-// Run parses command line arguments and processes commands.
-func (cli *CommandLine) Run() {
-	cli.ValidateArgs()
+// listAddresses lists all addresses from the wallet file.
+func (cli *CommandLine) listAddresses() {
+	wallets, _ := wallet.CreateWallets()
+	addresses := wallets.GetAllAddresses()
 
-	// Create subcommands.
+	for _, address := range addresses {
+		fmt.Printf("Address: %s\n", address)
+	}
+}
+
+// createWallet creates a new wallet and saves it to the file.
+func (cli *CommandLine) createWallet() {
+	wallets, _ := wallet.CreateWallets()
+	address := wallets.AddWallet()
+	wallets.SaveFile()
+
+	fmt.Printf("New address is: %s\n", address)
+}
+
+// Run parses command line arguments and processes commands
+func (cli *CommandLine) Run() {
+	cli.validateArgs()
+
+	// Create subcommands
 	getBalanceCmd := flag.NewFlagSet("getbalance", flag.ExitOnError)
 	createBlockchainCmd := flag.NewFlagSet("createblockchain", flag.ExitOnError)
 	sendCmd := flag.NewFlagSet("send", flag.ExitOnError)
 	printChainCmd := flag.NewFlagSet("printchain", flag.ExitOnError)
 
-	// Create flags for subcommands.
+	// Wallet commands
+	createWalletCmd := flag.NewFlagSet("createwallet", flag.ExitOnError)
+	listAddressesCmd := flag.NewFlagSet("listaddresses", flag.ExitOnError)
+
+	// Create flags for subcommands
 	getBalanceAddress := getBalanceCmd.String("address", "", "wallet address")
 	createBlockchainAddress := createBlockchainCmd.String("address", "", "miner address")
 	sendFrom := sendCmd.String("from", "", "wallet address")
 	sendTo := sendCmd.String("to", "", "wallet address")
 	sendAmount := sendCmd.Int("amount", 0, "amount to send")
 
-	// Switch on the first argument to determine the command.
+	// Switch on the first argument to determine the command
 	switch os.Args[1] {
 	case "getbalance":
 		err := getBalanceCmd.Parse(os.Args[2:])
@@ -126,18 +153,29 @@ func (cli *CommandLine) Run() {
 		if err != nil {
 			log.Panic(err)
 		}
+	case "createwallet":
+		err := createWalletCmd.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic(err)
+		}
+	case "listaddresses":
+		err := listAddressesCmd.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic(err)
+		}
 	default:
-		cli.PrintUsage()
+		cli.printUsage()
 		runtime.Goexit()
 	}
 
+	// Check if the subcommands were parsed and execute the appropriate command
 	if getBalanceCmd.Parsed() {
 		if *getBalanceAddress == "" {
 			getBalanceCmd.Usage()
 			runtime.Goexit()
 		}
 
-		cli.GetBalance(*getBalanceAddress)
+		cli.getBalance(*getBalanceAddress)
 	}
 
 	if createBlockchainCmd.Parsed() {
@@ -146,11 +184,11 @@ func (cli *CommandLine) Run() {
 			runtime.Goexit()
 		}
 
-		cli.CreateBlockchain(*createBlockchainAddress)
+		cli.createBlockchain(*createBlockchainAddress)
 	}
 
 	if printChainCmd.Parsed() {
-		cli.PrintChain()
+		cli.printChain()
 	}
 
 	if sendCmd.Parsed() {
@@ -159,6 +197,14 @@ func (cli *CommandLine) Run() {
 			runtime.Goexit()
 		}
 
-		cli.Send(*sendFrom, *sendTo, *sendAmount)
+		cli.send(*sendFrom, *sendTo, *sendAmount)
+	}
+
+	if createWalletCmd.Parsed() {
+		cli.createWallet()
+	}
+
+	if listAddressesCmd.Parsed() {
+		cli.listAddresses()
 	}
 }
