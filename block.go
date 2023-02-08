@@ -1,30 +1,38 @@
 package main
 
 import (
-	"bytes"
-	"crypto/sha256"
+	"time"
 )
 
+// Block struct holds the block data in the blockchain
 type Block struct {
-	Hash     []byte
-	Data     []byte
-	PrevHash []byte
+	Data      []byte
+	Hash      []byte
+	PrevHash  []byte
+	Timestamp int64
+	Nonce     int
 }
 
-func (b *Block) DeriveHash() {
-	info := bytes.Join([][]byte{b.Data, b.PrevHash}, []byte{})
-	hash := sha256.Sum256(info)
-
-	b.Hash = hash[:]
-}
-
+// CreateBlock creates a new block
 func CreateBlock(data string, prevHash []byte) *Block {
 	block := &Block{
-		Hash:     []byte{},
-		Data:     []byte(data),
-		PrevHash: prevHash,
+		Data:      []byte(data),
+		Hash:      []byte{},
+		PrevHash:  prevHash,
+		Timestamp: time.Now().Unix(),
+		Nonce:     0,
 	}
-	block.DeriveHash()
+	// Deriving hash from Proof of Work
+	pow := NewProofOfWork(block)
+	hash, nonce := pow.Run()
+
+	block.Hash = hash[:]
+	block.Nonce = nonce
 
 	return block
+}
+
+// NewGenesisBlock creates the first block in the blockchain
+func NewGenesisBlock() *Block {
+	return CreateBlock("Genesis Block", []byte{})
 }
