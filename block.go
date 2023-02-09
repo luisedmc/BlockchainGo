@@ -1,6 +1,9 @@
 package main
 
 import (
+	"bytes"
+	"encoding/gob"
+	"log"
 	"time"
 )
 
@@ -35,4 +38,30 @@ func CreateBlock(data string, prevHash []byte) *Block {
 // NewGenesisBlock creates the first block in the blockchain
 func NewGenesisBlock() *Block {
 	return CreateBlock("Genesis Block", []byte{})
+}
+
+// Serialize serializes a block to be stored in the database
+func (b *Block) Serialize() []byte {
+	var result bytes.Buffer
+
+	encoder := gob.NewEncoder(&result)
+	err := encoder.Encode(b)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	return result.Bytes()
+}
+
+// Deserialize derializes data and retuns a block
+func Deserialize(data []byte) *Block {
+	var block Block
+
+	decoder := gob.NewDecoder(bytes.NewReader(data))
+	err := decoder.Decode(&block)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	return &block
 }
