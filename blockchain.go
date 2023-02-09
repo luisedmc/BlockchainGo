@@ -54,7 +54,7 @@ func InitBlockchain() *Blockchain {
 
 		} else {
 			// Retrieving data
-			fmt.Println("Blockchain not found in the database.")
+			fmt.Println("Blockchain found in the database.")
 
 			item, err := txn.Get([]byte("lh"))
 			if err != nil {
