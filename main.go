@@ -1,30 +1,23 @@
 package main
 
-import (
-	"fmt"
-	"strconv"
-	"strings"
-)
+import "os"
 
 func main() {
+	defer os.Exit(0)
+
 	// Blockchain
-	chain := InitBlockchain()
+	bc := InitBlockchain()
+	defer bc.Database.Close()
 
-	chain.AddBlock("First Block after Genesis Block.")
-	chain.AddBlock("Second Block after Genesis Block.")
-	chain.AddBlock("Third Block after Genesis Block.")
-
-	// Printing Blocks in the Blockchain
-	for _, block := range chain.Blocks {
-		fmt.Printf("Previous Hash: %x\n", block.PrevHash)
-		fmt.Printf("Block Data: %s\n", block.Data)
-		fmt.Printf("Block Hash: %x\n\n", block.Hash)
-
-		// Proof of Work
-		pow := NewProofOfWork(block)
-		fmt.Printf("Proof of Work: %s\n", strings.Title(strconv.FormatBool(pow.Validate())))
-		fmt.Println()
+	// CLI
+	cli := CommandLine{
+		Blockchain: bc,
 	}
+	cli.RunCLI()
+
+	// Block
+
+	// Proof of Work
 
 	// Transaction
 
