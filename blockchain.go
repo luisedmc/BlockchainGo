@@ -128,3 +128,13 @@ func (chain *Blockchain) AddBlock(data string) {
 		log.Fatal(err)
 	}
 }
+
+// Iterator retuns a Blockchain iterat
+func (chain *Blockchain) Iterator() *BlockchainIterator {
+	bci := &BlockchainIterator{
+		CurrentHash: chain.LastHash,
+		Database:    chain.Database,
+	}
+
+	return bci
+}
