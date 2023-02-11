@@ -2,28 +2,29 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/gob"
 	"log"
 	"time"
 )
 
-// Block struct holds the block data in the blockchain
+// Block struct holds the Block data in the blockchain
 type Block struct {
-	Data      []byte
-	Hash      []byte
-	PrevHash  []byte
-	Timestamp int64
-	Nonce     int
+	Hash         []byte
+	PrevHash     []byte
+	Transactions []*Transaction
+	Timestamp    int64
+	Nonce        int
 }
 
-// CreateBlock creates a new block
-func CreateBlock(data string, prevHash []byte) *Block {
+// CreateBlock creates a new Block
+func CreateBlock(txs []*Transaction, prevHash []byte) *Block {
 	block := &Block{
-		Data:      []byte(data),
-		Hash:      []byte{},
-		PrevHash:  prevHash,
-		Timestamp: time.Now().Unix(),
-		Nonce:     0,
+		Hash:         []byte{},
+		PrevHash:     prevHash,
+		Transactions: txs,
+		Timestamp:    time.Now().Unix(),
+		Nonce:        0,
 	}
 	// Deriving hash from Proof of Work
 	pow := NewProofOfWork(block)
@@ -35,12 +36,25 @@ func CreateBlock(data string, prevHash []byte) *Block {
 	return block
 }
 
-// NewGenesisBlock creates the first block in the blockchain
-func NewGenesisBlock() *Block {
-	return CreateBlock("Genesis Block", []byte{})
+// NewGenesisBlock creates the first Block in the Blockchain
+func NewGenesis(coinbase *Transaction) *Block {
+	return CreateBlock([]*Transaction{coinbase}, []byte{})
 }
 
-// Serialize serializes a block to be stored in the database
+func (b *Block) HashTransactions() []byte {
+	var txHashes [][]byte
+	var TXHash [32]byte
+
+	for _, tx := range b.Transactions {
+		txHashes = append(txHashes, tx.ID)
+	}
+
+	TXHash = sha256.Sum256(bytes.Join(txHashes, []byte{}))
+
+	return TXHash[:]
+}
+
+// Serialize serializes a Block to be stored in the Database
 func (b *Block) Serialize() []byte {
 	var result bytes.Buffer
 
@@ -53,7 +67,7 @@ func (b *Block) Serialize() []byte {
 	return result.Bytes()
 }
 
-// Deserialize derializes data and retuns a block
+// Deserialize deserializes Block data
 func Deserialize(data []byte) *Block {
 	var block Block
 
