@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"runtime"
 
 	"github.com/dgraph-io/badger/v3"
 )
@@ -13,14 +14,20 @@ type Blockchain struct {
 	Database *badger.DB
 }
 
-// Path to save blocks in the Database
 const (
-	dbPath = "./tmp/blocks"
+	dbPath      = "./tmp/blocks"
+	dbFile      = "./tmp/blocks/MANIFEST"
+	genesisData = "First Transaction from Genesis"
 )
 
 // InitBlockchain initializes the Blockchain Database
-func InitBlockchain() *Blockchain {
+func InitBlockchain(address string) *Blockchain {
 	var lastHash []byte
+
+	if DBExists() {
+		fmt.Println("Blockchain already exists.")
+		runtime.Goexit()
+	}
 
 	// Defining options for the Database
 	opts := badger.DefaultOptions(dbPath)
@@ -34,44 +41,22 @@ func InitBlockchain() *Blockchain {
 	}
 
 	err = db.Update(func(txn *badger.Txn) error {
-		// Checking if already exists a blockchain in the database by trying to find a last hash (lh)
-		if _, err := txn.Get([]byte("lh")); err == badger.ErrKeyNotFound {
-			fmt.Println("Blockchain not found in the database.")
+		cbtx := NewCoinBaseTX(address, genesisData)
 
-			genesis := NewGenesisBlock()
-			fmt.Println("Genesis created.")
+		genesis := NewGenesis(cbtx)
+		fmt.Println("Genesis created.")
 
-			// Saving Genesis Block
-			err = txn.Set(genesis.Hash, genesis.Serialize())
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			err = txn.Set([]byte("lh"), genesis.Hash)
-			lastHash = genesis.Hash
-
-			return err
-
-		} else {
-			// Retrieving data
-			fmt.Println("Blockchain found in the database.")
-
-			item, err := txn.Get([]byte("lh"))
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			err = item.Value(func(val []byte) error {
-				lastHash = append([]byte{}, val...)
-
-				return nil
-			})
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			return err
+		err = txn.Set(genesis.Hash, genesis.Serialize())
+		if err != nil {
+			log.Panic(err)
 		}
+
+		err = txn.Set([]byte("lh"), genesis.Hash)
+
+		lastHash = genesis.Hash
+
+		return err
+
 	})
 	if err != nil {
 		log.Panic(err)
