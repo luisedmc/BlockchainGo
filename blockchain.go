@@ -73,7 +73,7 @@ func InitBlockchain(address string) *Blockchain {
 }
 
 // AddBlock adds a new Block to the Blockchain
-func (chain *Blockchain) AddBlock(data string) {
+func (chain *Blockchain) AddBlock(transactions []*Transaction) {
 	var lastHash []byte
 
 	// To add a new Block, we get the last block hash from the Database to use it to mine a new Block hash
@@ -95,7 +95,7 @@ func (chain *Blockchain) AddBlock(data string) {
 		log.Fatal(err)
 	}
 
-	newBlock := CreateBlock(data, lastHash)
+	newBlock := CreateBlock(transactions, lastHash)
 
 	// Updating the Database with the newBlock
 	err = chain.Database.Update(func(txn *badger.Txn) error {
@@ -140,14 +140,14 @@ func (chain *Blockchain) FindUnspentTransactions(address string) []Transaction {
 				}
 
 				// Getting all unlocked transactions and append it to unspent transactions
-				if out.CanUnlockOutput(address) {
+				if out.CanBeUnlockedOutput(address) {
 					unspentTXOs = append(unspentTXOs, *tx)
 				}
 			}
 
 			if !tx.IsCoinBase() {
 				for _, txin := range tx.Inputs {
-					if txin.CanUnlockInput(address) {
+					if txin.CanBeUnlockedInput(address) {
 						txinID := hex.EncodeToString(txin.ID)
 						spentTXOs[txinID] = append(spentTXOs[txinID], txin.Output)
 					}
@@ -161,6 +161,49 @@ func (chain *Blockchain) FindUnspentTransactions(address string) []Transaction {
 	}
 
 	return unspentTXOs
+}
+
+// FindUTXO returns only the unspent transactions outputs
+func (chain *Blockchain) FindUTXO(address string) []TXOutput {
+	var UTXOs []TXOutput
+	unspentTransactions := chain.FindUnspentTransactions(address)
+
+	// Iterate through every unspent transaction and getting only the outputs
+	for _, tx := range unspentTransactions {
+		for _, out := range tx.Outputs {
+			if out.CanBeUnlockedOutput(address) {
+				UTXOs = append(UTXOs, out)
+			}
+		}
+	}
+
+	return UTXOs
+}
+
+// FindSpendableOutputs finds all outputs and ensure that they store enough value to make a transaction
+func (chain *Blockchain) FindSpendableOutputs(address string, amount int) (int, map[string][]int) {
+	unspentOuts := make(map[string][]int)
+	unspentTXs := chain.FindUnspentTransactions(address)
+	accumulated := 0
+
+	// Iterate through all unspent transactions and accumulate their values
+Work:
+	for _, tx := range unspentTXs {
+		txID := hex.EncodeToString(tx.ID)
+
+		for outIdx, out := range tx.Outputs {
+			if out.CanBeUnlockedOutput(address) && accumulated < amount {
+				accumulated += out.Value
+				unspentOuts[txID] = append(unspentOuts[txID], outIdx)
+
+				if accumulated >= amount {
+					break Work
+				}
+			}
+		}
+	}
+
+	return accumulated, unspentOuts
 }
 
 // Iterator retuns a Blockchain iterat
