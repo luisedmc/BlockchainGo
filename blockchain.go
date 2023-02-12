@@ -21,8 +21,8 @@ const (
 	genesisData = "First Transaction from Genesis"
 )
 
-// InitBlockchain initializes the Blockchain Database
-func InitBlockchain(address string) *Blockchain {
+// CreateBlockchain creates the Blockchain Database
+func CreateBlockchain(address string) *Blockchain {
 	var lastHash []byte
 
 	if DBExists() {
@@ -70,6 +70,50 @@ func InitBlockchain(address string) *Blockchain {
 	}
 
 	return &blockchain
+}
+
+// ContinueBlockchain keeps the Blockchain running
+func ContinueBlockchain(address string) *Blockchain {
+	var lastHash []byte
+
+	if !DBExists() {
+		fmt.Println("ERROR: Blockchain not found!")
+		runtime.Goexit()
+	}
+
+	opts := badger.DefaultOptions(dbPath)
+	opts.Dir = dbPath
+	opts.ValueDir = dbPath
+
+	db, err := badger.Open(opts)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	err = db.Update(func(txn *badger.Txn) error {
+		item, err := txn.Get([]byte("lh"))
+		if err != nil {
+			log.Panic(err)
+		}
+
+		err = item.Value(func(val []byte) error {
+			lastHash = append(lastHash, val...)
+
+			return nil
+		})
+		if err != nil {
+			log.Panic(err)
+		}
+
+		return err
+	})
+
+	chain := Blockchain{
+		LastHash: lastHash,
+		Database: db,
+	}
+
+	return &chain
 }
 
 // AddBlock adds a new Block to the Blockchain
@@ -214,7 +258,7 @@ func NewTransaction(from, to string, amount int, chain *Blockchain) *Transaction
 	acc, validOutputs := chain.FindSpendableOutputs(from, amount)
 
 	if acc < amount {
-		log.Panic("ERROR: Not enought funds.")
+		log.Panic("ERROR: Not enought funds!")
 	}
 
 	// List of inputs
