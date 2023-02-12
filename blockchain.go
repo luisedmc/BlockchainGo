@@ -38,7 +38,7 @@ func InitBlockchain(address string) *Blockchain {
 	// Opening BadgerDB with options
 	db, err := badger.Open(opts)
 	if err != nil {
-		log.Fatal(err)
+		log.Panic(err)
 	}
 
 	err = db.Update(func(txn *badger.Txn) error {
@@ -80,7 +80,7 @@ func (chain *Blockchain) AddBlock(transactions []*Transaction) {
 	err := chain.Database.View(func(txn *badger.Txn) error {
 		item, err := txn.Get([]byte("lh"))
 		if err != nil {
-			log.Fatal(err)
+			log.Panic(err)
 		}
 
 		err = item.Value(func(val []byte) error {
@@ -92,7 +92,7 @@ func (chain *Blockchain) AddBlock(transactions []*Transaction) {
 		return err
 	})
 	if err != nil {
-		log.Fatal(err)
+		log.Panic(err)
 	}
 
 	newBlock := CreateBlock(transactions, lastHash)
@@ -101,7 +101,7 @@ func (chain *Blockchain) AddBlock(transactions []*Transaction) {
 	err = chain.Database.Update(func(txn *badger.Txn) error {
 		err := txn.Set(newBlock.Hash, newBlock.Serialize())
 		if err != nil {
-			log.Fatal(err)
+			log.Panic(err)
 		}
 
 		err = txn.Set([]byte("lh"), newBlock.Hash)
@@ -111,7 +111,7 @@ func (chain *Blockchain) AddBlock(transactions []*Transaction) {
 		return err
 	})
 	if err != nil {
-		log.Fatal(err)
+		log.Panic(err)
 	}
 }
 
@@ -180,7 +180,7 @@ func (chain *Blockchain) FindUTXO(address string) []TXOutput {
 	return UTXOs
 }
 
-// FindSpendableOutputs finds all outputs and ensure that they store enough value to make a transaction
+// FindSpendableOutputs finds all unspent outputs and ensure that they store enough value to make a transaction
 func (chain *Blockchain) FindSpendableOutputs(address string, amount int) (int, map[string][]int) {
 	unspentOuts := make(map[string][]int)
 	unspentTXs := chain.FindUnspentTransactions(address)
@@ -204,6 +204,53 @@ Work:
 	}
 
 	return accumulated, unspentOuts
+}
+
+// NewTransaction creates a new transaction
+func NewTransaction(from, to string, amount int, chain *Blockchain) *Transaction {
+	var inputs []TXInput
+	var outputs []TXOutput
+
+	acc, validOutputs := chain.FindSpendableOutputs(from, amount)
+
+	if acc < amount {
+		log.Panic("ERROR: Not enought funds.")
+	}
+
+	// List of inputs
+	for txID, outs := range validOutputs {
+		txID, err := hex.DecodeString(txID)
+		if err != nil {
+			log.Panic(err)
+		}
+
+		for _, out := range outs {
+			input := TXInput{
+				ID:        txID,
+				Output:    out,
+				Signature: from,
+			}
+			inputs = append(inputs, input)
+		}
+	}
+
+	// List of outputs
+	outputs = append(outputs, TXOutput{amount, to})
+
+	// Amount stored in account > Amount sent in the transaction
+	if acc > amount {
+		outputs = append(outputs, TXOutput{acc - amount, from})
+	}
+
+	// Create a new transaction
+	tx := Transaction{
+		ID:      nil,
+		Inputs:  inputs,
+		Outputs: outputs,
+	}
+	tx.SetTransactionID()
+
+	return &tx
 }
 
 // Iterator retuns a Blockchain iterat
