@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/hex"
 	"fmt"
 	"log"
 	"runtime"
@@ -112,6 +113,54 @@ func (chain *Blockchain) AddBlock(data string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+// FindUnspentTransactions finds all transactions outputs that weren't referenced in any inputs
+func (chain *Blockchain) FindUnspentTransactions(address string) []Transaction {
+	var unspentTXOs []Transaction
+	spentTXOs := make(map[string][]int)
+
+	iter := chain.Iterator()
+
+	for {
+		block := iter.Next()
+
+		for _, tx := range block.Transactions {
+			txID := hex.EncodeToString(tx.ID)
+
+		Outputs:
+			for outIDx, out := range tx.Outputs {
+				// Checking if an output was already spent
+				if spentTXOs[txID] != nil {
+					for _, spentOutIDx := range spentTXOs[txID] {
+						if spentOutIDx == outIDx {
+							continue Outputs
+						}
+					}
+				}
+
+				// Getting all unlocked transactions and append it to unspent transactions
+				if out.CanUnlockOutput(address) {
+					unspentTXOs = append(unspentTXOs, *tx)
+				}
+			}
+
+			if !tx.IsCoinBase() {
+				for _, txin := range tx.Inputs {
+					if txin.CanUnlockInput(address) {
+						txinID := hex.EncodeToString(txin.ID)
+						spentTXOs[txinID] = append(spentTXOs[txinID], txin.Output)
+					}
+				}
+			}
+		}
+
+		if len(block.PrevHash) == 0 {
+			break
+		}
+	}
+
+	return unspentTXOs
 }
 
 // Iterator retuns a Blockchain iterat
