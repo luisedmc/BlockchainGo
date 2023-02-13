@@ -1,11 +1,11 @@
-package main
+package tx
 
 // TXInput holds the transaction output
 type TXOutput struct {
-	Amount int
+	Value  int
 	PubKey string
 }
 
-func (txout *TXOutput) CanUnlockOutput(data string) bool {
+func (txout *TXOutput) CanBeUnlockedOutput(data string) bool {
 	return txout.PubKey == data
 }

@@ -1,4 +1,4 @@
-package main
+package tx
 
 // TXInput holds the transaction input
 type TXInput struct {
@@ -7,6 +7,6 @@ type TXInput struct {
 	Signature string
 }
 
-func (txin *TXInput) CanUnlockInput(data string) bool {
+func (txin *TXInput) CanBeUnlockedInput(data string) bool {
 	return txin.Signature == data
 }

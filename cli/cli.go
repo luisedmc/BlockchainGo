@@ -1,4 +1,4 @@
-package main
+package cli
 
 import (
 	"flag"
@@ -8,6 +8,9 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+
+	"github.com/luisedmc/BlockchainGo/blockchain"
+	"github.com/luisedmc/BlockchainGo/tx"
 )
 
 type CommandLine struct{}
@@ -29,14 +32,14 @@ func (cli *CommandLine) validateArgs() {
 }
 
 func (cli *CommandLine) createBlockchain(address string) {
-	chain := CreateBlockchain(address)
+	chain := blockchain.CreateBlockchain(address)
 	chain.Database.Close()
 
 	fmt.Println("Blockchain created!")
 }
 
 func (cli *CommandLine) printChain() {
-	chain := ContinueBlockchain("")
+	chain := blockchain.ContinueBlockchain("")
 	defer chain.Database.Close()
 
 	iter := chain.Iterator()
@@ -47,7 +50,7 @@ func (cli *CommandLine) printChain() {
 		fmt.Printf("Previous Hash: %x\n", block.PrevHash)
 		fmt.Printf("Block Hash: %x\n", block.Hash)
 
-		pow := NewProofOfWork(block)
+		pow := blockchain.NewProofOfWork(block)
 		fmt.Printf("Proof of Work: %s\n", strings.Title(strconv.FormatBool(pow.Validate())))
 		fmt.Println()
 
@@ -59,7 +62,7 @@ func (cli *CommandLine) printChain() {
 }
 
 func (cli *CommandLine) getBalance(address string) {
-	chain := ContinueBlockchain(address)
+	chain := blockchain.ContinueBlockchain(address)
 	defer chain.Database.Close()
 
 	balance := 0
@@ -73,11 +76,11 @@ func (cli *CommandLine) getBalance(address string) {
 }
 
 func (cli *CommandLine) send(from, to string, amount int) {
-	chain := ContinueBlockchain(from)
+	chain := blockchain.ContinueBlockchain(from)
 	defer chain.Database.Close()
 
-	tx := NewTransaction(from, to, amount, chain)
-	chain.AddBlock([]*Transaction{tx})
+	transaction := blockchain.NewTransaction(from, to, amount, chain)
+	chain.AddBlock([]*tx.Transaction{transaction})
 
 	fmt.Printf("The amount of %d has been sent successfully.\nFrom: %s\tTo: %s", amount, from, to)
 }

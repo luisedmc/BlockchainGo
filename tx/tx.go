@@ -1,4 +1,4 @@
-package main
+package tx
 
 import (
 	"bytes"
@@ -45,7 +45,7 @@ func NewCoinBaseTX(to, data string) *Transaction {
 	}
 
 	txout := TXOutput{
-		Amount: 10,
+		Value:  100,
 		PubKey: to,
 	}
 

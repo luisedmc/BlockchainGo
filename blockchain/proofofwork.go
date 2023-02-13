@@ -1,4 +1,4 @@
-package main
+package blockchain
 
 import (
 	"bytes"
@@ -8,10 +8,10 @@ import (
 	"math/big"
 )
 
-const maxNonce = math.MaxInt64
-
 // targetBits define the defficulty of mining a block
 const targetBits = 16
+
+const maxNonce = math.MaxInt64
 
 // ProofOfWork struct holds a block and target, that is the requirement for mining a block
 type ProofOfWork struct {
@@ -36,8 +36,8 @@ func NewProofOfWork(b *Block) *ProofOfWork {
 func (pow *ProofOfWork) PrepareData(nonce int) []byte {
 	data := bytes.Join(
 		[][]byte{
-			pow.Block.Data,
 			pow.Block.PrevHash,
+			pow.Block.HashTransactions(),
 			IntToHex(pow.Block.Timestamp),
 			IntToHex(int64(targetBits)),
 			IntToHex(int64(nonce)),
@@ -54,7 +54,7 @@ func (pow *ProofOfWork) Run() ([]byte, int) {
 	var hash [32]byte
 	nonce := 0
 
-	fmt.Printf("Mining the block containing \"%s\"\n", pow.Block.Data)
+	fmt.Println("Mining a new Block...")
 
 	for nonce < maxNonce {
 		// Prepare data
@@ -67,7 +67,7 @@ func (pow *ProofOfWork) Run() ([]byte, int) {
 		// Convert the hash to a big integer
 		intHash.SetBytes(hash[:])
 
-		// 4. Compare the integer with the target
+		// Compare the integer with the target
 		if intHash.Cmp(pow.Target) == -1 {
 			break
 		} else {

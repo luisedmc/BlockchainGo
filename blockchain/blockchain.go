@@ -1,4 +1,4 @@
-package main
+package blockchain
 
 import (
 	"encoding/hex"
@@ -7,6 +7,7 @@ import (
 	"runtime"
 
 	"github.com/dgraph-io/badger/v3"
+	"github.com/luisedmc/BlockchainGo/tx"
 )
 
 // Blockchain interacts with the Database
@@ -42,7 +43,7 @@ func CreateBlockchain(address string) *Blockchain {
 	}
 
 	err = db.Update(func(txn *badger.Txn) error {
-		cbtx := NewCoinBaseTX(address, genesisData)
+		cbtx := tx.NewCoinBaseTX(address, genesisData)
 
 		genesis := NewGenesis(cbtx)
 		fmt.Println("Genesis created.")
@@ -117,7 +118,7 @@ func ContinueBlockchain(address string) *Blockchain {
 }
 
 // AddBlock adds a new Block to the Blockchain
-func (chain *Blockchain) AddBlock(transactions []*Transaction) {
+func (chain *Blockchain) AddBlock(transactions []*tx.Transaction) {
 	var lastHash []byte
 
 	// To add a new Block, we get the last block hash from the Database to use it to mine a new Block hash
@@ -160,8 +161,8 @@ func (chain *Blockchain) AddBlock(transactions []*Transaction) {
 }
 
 // FindUnspentTransactions finds all transactions outputs that weren't referenced in any inputs
-func (chain *Blockchain) FindUnspentTransactions(address string) []Transaction {
-	var unspentTXOs []Transaction
+func (chain *Blockchain) FindUnspentTransactions(address string) []tx.Transaction {
+	var unspentTXOs []tx.Transaction
 	spentTXOs := make(map[string][]int)
 
 	iter := chain.Iterator()
@@ -208,8 +209,8 @@ func (chain *Blockchain) FindUnspentTransactions(address string) []Transaction {
 }
 
 // FindUTXO returns only the unspent transactions outputs
-func (chain *Blockchain) FindUTXO(address string) []TXOutput {
-	var UTXOs []TXOutput
+func (chain *Blockchain) FindUTXO(address string) []tx.TXOutput {
+	var UTXOs []tx.TXOutput
 	unspentTransactions := chain.FindUnspentTransactions(address)
 
 	// Iterate through every unspent transaction and getting only the outputs
@@ -251,9 +252,9 @@ Work:
 }
 
 // NewTransaction creates a new transaction
-func NewTransaction(from, to string, amount int, chain *Blockchain) *Transaction {
-	var inputs []TXInput
-	var outputs []TXOutput
+func NewTransaction(from, to string, amount int, chain *Blockchain) *tx.Transaction {
+	var inputs []tx.TXInput
+	var outputs []tx.TXOutput
 
 	acc, validOutputs := chain.FindSpendableOutputs(from, amount)
 
@@ -269,7 +270,7 @@ func NewTransaction(from, to string, amount int, chain *Blockchain) *Transaction
 		}
 
 		for _, out := range outs {
-			input := TXInput{
+			input := tx.TXInput{
 				ID:        txID,
 				Output:    out,
 				Signature: from,
@@ -279,15 +280,21 @@ func NewTransaction(from, to string, amount int, chain *Blockchain) *Transaction
 	}
 
 	// List of outputs
-	outputs = append(outputs, TXOutput{amount, to})
+	outputs = append(outputs, tx.TXOutput{
+		Value:  amount,
+		PubKey: to,
+	})
 
 	// Amount stored in account > Amount sent in the transaction
 	if acc > amount {
-		outputs = append(outputs, TXOutput{acc - amount, from})
+		outputs = append(outputs, tx.TXOutput{
+			Value:  acc - amount,
+			PubKey: from,
+		})
 	}
 
 	// Create a new transaction
-	tx := Transaction{
+	tx := tx.Transaction{
 		ID:      nil,
 		Inputs:  inputs,
 		Outputs: outputs,

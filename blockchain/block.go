@@ -1,4 +1,4 @@
-package main
+package blockchain
 
 import (
 	"bytes"
@@ -6,19 +6,21 @@ import (
 	"encoding/gob"
 	"log"
 	"time"
+
+	"github.com/luisedmc/BlockchainGo/tx"
 )
 
 // Block struct holds the Block data in the blockchain
 type Block struct {
 	Hash         []byte
 	PrevHash     []byte
-	Transactions []*Transaction
+	Transactions []*tx.Transaction
 	Timestamp    int64
 	Nonce        int
 }
 
 // CreateBlock creates a new Block
-func CreateBlock(txs []*Transaction, prevHash []byte) *Block {
+func CreateBlock(txs []*tx.Transaction, prevHash []byte) *Block {
 	block := &Block{
 		Hash:         []byte{},
 		PrevHash:     prevHash,
@@ -37,19 +39,20 @@ func CreateBlock(txs []*Transaction, prevHash []byte) *Block {
 }
 
 // NewGenesisBlock creates the first Block in the Blockchain
-func NewGenesis(coinbase *Transaction) *Block {
-	return CreateBlock([]*Transaction{coinbase}, []byte{})
+func NewGenesis(coinbase *tx.Transaction) *Block {
+	return CreateBlock([]*tx.Transaction{coinbase}, []byte{})
 }
 
+// HashTransations creates a unique hash for transactions
 func (b *Block) HashTransactions() []byte {
-	var txHashes [][]byte
+	var TXHashes [][]byte
 	var TXHash [32]byte
 
 	for _, tx := range b.Transactions {
-		txHashes = append(txHashes, tx.ID)
+		TXHashes = append(TXHashes, tx.ID)
 	}
 
-	TXHash = sha256.Sum256(bytes.Join(txHashes, []byte{}))
+	TXHash = sha256.Sum256(bytes.Join(TXHashes, []byte{}))
 
 	return TXHash[:]
 }
