@@ -1,4 +1,4 @@
-module github.com/luisedmc/blockgo
+module github.com/luisedmc/BlockchainGo
 
 go 1.20
 
