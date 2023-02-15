@@ -2,7 +2,7 @@
 
 BlockchainGo is a simple implementation of the Blockchain technology in Go language. This project was build to learn more about the Blockchain technology and its features. The code was written with some comments in a way that can maybe help understand the most complicated parts. The code is also very direct, I didn't try to reinvent the wheel, just implement some of the Blockchain features.
 
-I will be adding more features to this project in the future. See [Updates](#updates) section for more details.
+I will be adding more features to this project in the future. See [Roadmap](#roadmap) section for more details.
 
 #### Disclaimer
 
@@ -28,6 +28,13 @@ Like i said before, this project was built for learning purposes. It is not a pr
 <img src="/images/rick_and_morty.jpg" alt="Rick and Morty explaning Blockchain" width=380 height=380>
 
 ## Features
+
+At the current state, the Blockchain has the following features:
+
+- Create a new Blockchain and store it in the database
+- Print the Blockchain in the terminal
+- Transactions
+- Get the balance of an address
 
 ## Usage
 
