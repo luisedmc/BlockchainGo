@@ -103,23 +103,19 @@ func (cli *CommandLine) RunCLI() {
 	// Checking commands
 	switch os.Args[1] {
 	case "createBlockchain":
-		err := createBlockchainCmd.Parse(os.Args[2:])
-		if err != nil {
+		if err := createBlockchainCmd.Parse(os.Args[2:]); err != nil {
 			log.Panic(err)
 		}
 	case "printChain":
-		err := printChainCmd.Parse(os.Args[2:])
-		if err != nil {
+		if err := printChainCmd.Parse(os.Args[2:]); err != nil {
 			log.Panic(err)
 		}
 	case "getBalance":
-		err := getBalanceCmd.Parse(os.Args[2:])
-		if err != nil {
+		if err := getBalanceCmd.Parse(os.Args[2:]); err != nil {
 			log.Panic(err)
 		}
 	case "send":
-		err := sendCmd.Parse(os.Args[2:])
-		if err != nil {
+		if err := sendCmd.Parse(os.Args[2:]); err != nil {
 			log.Panic(err)
 		}
 	default:

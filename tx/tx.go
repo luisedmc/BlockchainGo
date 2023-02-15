@@ -21,8 +21,7 @@ func (tx *Transaction) SetTransactionID() {
 	var hash [32]byte
 
 	encode := gob.NewEncoder(&encoded)
-	err := encode.Encode(tx)
-	if err != nil {
+	if err := encode.Encode(tx); err != nil {
 		log.Panic(err)
 	}
 
