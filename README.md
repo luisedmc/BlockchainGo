@@ -13,24 +13,53 @@ Like i said before, this project was built for learning purposes. It is not a pr
 - [BlockchainGo](#blockchaingo)
   - [Disclaimer](#disclaimer)
 - [Table of Contents](#table-of-contents)
-  - [Blockchain](#blockchain)
-  - [Features](#features)
-  - [Usage](#usage)
-  - [Updates](#updates)
-  - [Bibliography](#bibliography)
+- [Blockchain](#blockchain)
+  - [What's Blockchain?](#whats-blockchain)
+- [Features](#features)
+- [Usage](#usage)
+  - [Commands](#commands)
+    - [Example](#example)
+- [Roadmap](#roadmap)
 
-### Blockchain
+## Blockchain
 
-### Features
+### What's Blockchain?
 
-### Usage
+<img src="/images/rick_and_morty.jpg" alt="Rick and Morty explaning Blockchain" width=380 height=380>
 
-### Updates
+## Features
+
+## Usage
+
+Clone this repository and change to the project directory:
+
+```
+git clone https://github.com/luisedmc/BlockchainGo && cd BlockchainGo
+```
+
+In the project directory, just `go run .` and then the commands listed below.
+
+You can also build the binary file with `go build` and then run it using `./BlockchainGo`
+
+### Commands
+
+| Command                                 | Description                                                       |
+| --------------------------------------- | ----------------------------------------------------------------- |
+| `createBlockchain -address ADDRESS`     | Create a new Blockchain with the given address as the first miner |
+| `printChain`                            | Print all the blocks of the blockchain                            |
+| `getBalance -address ADDRESS`           | Get the balance of the given address                              |
+| `send -from FROM -to TO -amount AMOUNT` | Send the given amount of coins from one address to another        |
+
+#### Example
+
+`go run . createBlockchain -address "luisedmc"`
+or
+`./BlockchainGo createBlockchain -address "luisedmc"`
+
+## Roadmap
+
+Features that I would like to implement in the future:
 
 - [ ] Wallets
 - [ ] Proof of Stake
 - [ ] Ethereum
-
-### Bibliography
-
-All resources used to help me build this project:
