@@ -20,8 +20,8 @@ func (cli *CommandLine) printUsage() {
 	fmt.Println()
 	fmt.Println("createBlockchain -address ADDRESS | Creates a Blockchain.")
 	fmt.Println("printChain | Prints all Blocks in the Blockchain.")
-	fmt.Println("getBalance -address ADDRESS | Gets address balance.")
-	fmt.Println("send -from FROM -to TO -amount AMOUNT | Send a amount from one address to another.")
+	fmt.Println("getBalance -address ADDRESS | Gets balance of an address.")
+	fmt.Println("send -from FROM -to TO -amount AMOUNT | Sends an amount from one address to another.")
 }
 
 func (cli *CommandLine) validateArgs() {
