@@ -5,6 +5,7 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/sha256"
+	"fmt"
 	"log"
 
 	"golang.org/x/crypto/ripemd160"
@@ -49,6 +50,19 @@ func PublicKeyHash(publicKey []byte) []byte {
 	return publicRIPEMD160
 }
 
+// Address returns the Wallet address
+func (w Wallet) Address() []byte {
+	pubHash := PublicKeyHash(w.PublicKey)
+
+	address := Base58Encode(pubHash)
+
+	fmt.Printf("pub hash: %x\n", pubHash)
+	fmt.Printf("pub key: %x\n", w.PublicKey)
+	fmt.Printf("address: %x\n", address)
+
+	return address
+}
+
 // generateKeyPair generates a new Public and Private key
 func generateKeyPair() (ecdsa.PrivateKey, []byte) {
 	// secp256k1 curve also knows as P-256
@@ -64,12 +78,4 @@ func generateKeyPair() (ecdsa.PrivateKey, []byte) {
 	publicKey := append(privateKey.PublicKey.X.Bytes(), privateKey.PublicKey.Y.Bytes()...)
 
 	return *privateKey, publicKey
-}
-
-// checkSum generates a new checksum used to prevent errors in wallets addresses
-func checkSum(payload []byte) []byte {
-	firstHash := sha256.Sum256(payload)
-	secondHash := sha256.Sum256(firstHash[:])
-
-	return secondHash[:checkSumLength]
 }
