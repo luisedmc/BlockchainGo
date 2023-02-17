@@ -11,6 +11,7 @@ import (
 
 	"github.com/luisedmc/BlockchainGo/blockchain"
 	"github.com/luisedmc/BlockchainGo/tx"
+	"github.com/luisedmc/BlockchainGo/wallet"
 )
 
 type CommandLine struct{}
@@ -20,6 +21,8 @@ func (cli *CommandLine) printUsage() {
 	fmt.Println()
 	fmt.Println("createBlockchain -address ADDRESS | Creates a Blockchain.")
 	fmt.Println("printChain | Prints all Blocks in the Blockchain.")
+	fmt.Println("createWallet | Creates a new Wallet.")
+	fmt.Println("listAddresses | List all Wallets addresses from file.")
 	fmt.Println("getBalance -address ADDRESS | Gets balance of an address.")
 	fmt.Println("send -from FROM -to TO -amount AMOUNT | Sends an amount from one address to another.")
 }
@@ -61,6 +64,26 @@ func (cli *CommandLine) printChain() {
 	}
 }
 
+func (cli *CommandLine) createWallet() {
+	wallets, _ := wallet.CreateWallets()
+
+	address := wallets.AddWallet()
+
+	wallets.SaveToFile()
+
+	fmt.Printf("New Address: %s\n", address)
+}
+
+func (cli *CommandLine) listAddresses() {
+	wallets, _ := wallet.CreateWallets()
+
+	addresses := wallets.GetAllAddresses()
+
+	for _, address := range addresses {
+		fmt.Printf("Address: %s\n", address)
+	}
+}
+
 func (cli *CommandLine) getBalance(address string) {
 	chain := blockchain.ContinueBlockchain(address)
 	defer chain.Database.Close()
@@ -91,6 +114,8 @@ func (cli *CommandLine) RunCLI() {
 	// Commands
 	createBlockchainCmd := flag.NewFlagSet("createBlockchain", flag.ExitOnError)
 	printChainCmd := flag.NewFlagSet("printChain", flag.ExitOnError)
+	createWalletCmd := flag.NewFlagSet("createWallet", flag.ExitOnError)
+	listAddressesCmd := flag.NewFlagSet("listAddresses", flag.ExitOnError)
 	getBalanceCmd := flag.NewFlagSet("getBalance", flag.ExitOnError)
 	sendCmd := flag.NewFlagSet("send", flag.ExitOnError)
 
@@ -108,6 +133,14 @@ func (cli *CommandLine) RunCLI() {
 		}
 	case "printChain":
 		if err := printChainCmd.Parse(os.Args[2:]); err != nil {
+			log.Panic(err)
+		}
+	case "createWallet":
+		if err := createWalletCmd.Parse(os.Args[2:]); err != nil {
+			log.Panic(err)
+		}
+	case "listAddresses":
+		if err := listAddressesCmd.Parse(os.Args[2:]); err != nil {
 			log.Panic(err)
 		}
 	case "getBalance":
@@ -132,6 +165,18 @@ func (cli *CommandLine) RunCLI() {
 		cli.createBlockchain(*createBlockchainAddress)
 	}
 
+	if printChainCmd.Parsed() {
+		cli.printChain()
+	}
+
+	if createWalletCmd.Parsed() {
+		cli.createWallet()
+	}
+
+	if listAddressesCmd.Parsed() {
+		cli.listAddresses()
+	}
+
 	if getBalanceCmd.Parsed() {
 		if *getBalanceAddress == "" {
 			getBalanceCmd.Usage()
@@ -139,10 +184,6 @@ func (cli *CommandLine) RunCLI() {
 		}
 
 		cli.getBalance(*getBalanceAddress)
-	}
-
-	if printChainCmd.Parsed() {
-		cli.printChain()
 	}
 
 	if sendCmd.Parsed() {
