@@ -45,7 +45,7 @@ func (ws Wallets) GetAllAddresses() []string {
 
 func (ws *Wallets) AddWallet() string {
 	wallet := CreateWallet()
-	address := fmt.Sprintf("%s", wallet.Address())
+	address := fmt.Sprintf("%s", wallet.GetAddress())
 
 	ws.Wallets[address] = wallet
 

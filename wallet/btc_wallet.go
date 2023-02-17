@@ -50,15 +50,22 @@ func PublicKeyHash(publicKey []byte) []byte {
 	return publicRIPEMD160
 }
 
-// Address returns the Wallet address
-func (w Wallet) Address() []byte {
-	pubHash := PublicKeyHash(w.PublicKey)
+// Address returns a Wallet address
+func (w Wallet) GetAddress() []byte {
+	// Concatenating Public Key Hash, Version and CheckSum to create an address
+	pubKeyHash := PublicKeyHash(w.PublicKey)
 
-	address := Base58Encode(pubHash)
+	versionedHash := append([]byte{version}, pubKeyHash...)
+	checkSum := checkSum(versionedHash)
 
-	fmt.Printf("pub hash: %x\n", pubHash)
-	fmt.Printf("pub key: %x\n", w.PublicKey)
-	fmt.Printf("address: %x\n", address)
+	fullHash := append(versionedHash, checkSum...)
+
+	// Formats the address into Base58 format
+	address := Base58Encode(fullHash)
+
+	fmt.Printf("Public Hash: %x\n", pubKeyHash)
+	fmt.Printf("Public Key: %x\n", w.PublicKey)
+	fmt.Printf("Address: %x\n", address)
 
 	return address
 }
@@ -78,4 +85,12 @@ func generateKeyPair() (ecdsa.PrivateKey, []byte) {
 	publicKey := append(privateKey.PublicKey.X.Bytes(), privateKey.PublicKey.Y.Bytes()...)
 
 	return *privateKey, publicKey
+}
+
+// checkSum generates a new checksum used to prevent errors in wallets addresses
+func checkSum(payload []byte) []byte {
+	firstHash := sha256.Sum256(payload)
+	secondHash := sha256.Sum256(firstHash[:])
+
+	return secondHash[:checkSumLength]
 }

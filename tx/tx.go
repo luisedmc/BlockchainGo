@@ -36,7 +36,6 @@ func NewCoinBaseTX(to, data string) *Transaction {
 		data = fmt.Sprintf("Coins to: '%s'.", to)
 	}
 
-	// Hard coding the transaction
 	txin := TXInput{
 		ID:        []byte{},
 		Output:    -1,
