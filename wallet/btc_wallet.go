@@ -51,7 +51,7 @@ func PublicKeyHash(publicKey []byte) []byte {
 
 // generateKeyPair generates a new Public and Private key
 func generateKeyPair() (ecdsa.PrivateKey, []byte) {
-	// secp256r1 curve also knows as P-256
+	// secp256k1 curve also knows as P-256
 	curve := elliptic.P256()
 
 	// Generating Private Key with ECDSA algorithm
