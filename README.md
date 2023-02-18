@@ -17,7 +17,8 @@ Like i said before, this project was built for learning purposes. It is not a pr
   - [What's Blockchain?](#whats-blockchain)
   - [Blocks](#blocks)
   - [Transactions](#transactions)
-- [Features](#features)
+  - [Wallet](#wallet)
+- [Current State](#current-state)
 - [Usage](#usage)
   - [Commands](#commands)
     - [Example](#example)
@@ -42,14 +43,19 @@ This works very well in the context of transactions. For example, if you want to
 
 The transactions inside the Blockchain connect people with people **without relying on any financial system** (peer-to-peer), making this whole process a lot safer.
 
-## Features
+### Wallet
+
+Wallet is simply the local you store your and manage your cryptocurrencies. It consists of two parts: a Public Address and a Private Key. The Public Address is the Wallet Address and is a string of characters that other people can use to send you cryptocurrency. The Private Key is a secret string of characters that you use to access your wallet (very important to keep this one in a safe place).
+
+## Current State
 
 At the current state, the BlockchainGo has the following features:
 
 - Create a new Blockchain and store it in the database
-- Print the Blockchain in the terminal
+- Print the All Blocks
 - Transactions
-- Get the balance of an address
+- Get the balance of a specific address
+- Create a valid BTC Wallet address
 
 ## Usage
 
@@ -59,7 +65,9 @@ Clone this repository and change to the project directory:
 git clone https://github.com/luisedmc/BlockchainGo && cd BlockchainGo
 ```
 
-In the project directory, just `go run .` and then the commands listed below.
+If some packages are missing, you can get them with `go mod tidy`
+
+In the project directory, just `go run main.go` or `go run .` and then the commands listed below.
 
 You can also build the binary file with `go build` and then run it using `./BlockchainGo`
 
@@ -82,7 +90,7 @@ or
 
 Features that I would like to implement in the future:
 
-- [ ] Wallets
+- [x] Wallets
+- [ ] Signatures
 - [ ] Web Server
-- [ ] Proof of Stake
 - [ ] Ethereum
