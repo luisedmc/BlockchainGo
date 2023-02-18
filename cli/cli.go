@@ -65,17 +65,15 @@ func (cli *CommandLine) printChain() {
 }
 
 func (cli *CommandLine) createWallet() {
-	wallets, _ := wallet.CreateWallets()
+	wallets := wallet.CreateWallets()
 
 	address := wallets.AddWallet()
-
-	wallets.SaveToFile()
 
 	fmt.Printf("New Address: %s\n", address)
 }
 
 func (cli *CommandLine) listAddresses() {
-	wallets, _ := wallet.CreateWallets()
+	wallets := wallet.CreateWallets()
 
 	addresses := wallets.GetAllAddresses()
 
