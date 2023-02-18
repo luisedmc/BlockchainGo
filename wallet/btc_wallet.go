@@ -5,7 +5,6 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/sha256"
-	"fmt"
 	"log"
 
 	"golang.org/x/crypto/ripemd160"
@@ -63,9 +62,8 @@ func (w Wallet) GetAddress() []byte {
 	// Formats the address into Base58 format
 	address := Base58Encode(fullHash)
 
-	fmt.Printf("Public Hash: %x\n", pubKeyHash)
-	fmt.Printf("Public Key: %x\n", w.PublicKey)
-	fmt.Printf("Address: %x\n", address)
+	// fmt.Printf("Public Key: %x\n", w.PublicKey)
+	// fmt.Printf("Address: %x\n", address)
 
 	return address
 }

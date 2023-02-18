@@ -7,7 +7,6 @@ import (
 	"os"
 	"runtime"
 	"strconv"
-	"strings"
 
 	"github.com/luisedmc/BlockchainGo/blockchain"
 	"github.com/luisedmc/BlockchainGo/tx"
@@ -54,7 +53,7 @@ func (cli *CommandLine) printChain() {
 		fmt.Printf("Block Hash: %x\n", block.Hash)
 
 		pow := blockchain.NewProofOfWork(block)
-		fmt.Printf("Proof of Work: %s\n", strings.Title(strconv.FormatBool(pow.Validate())))
+		fmt.Printf("Proof of Work: %s\n", strconv.FormatBool(pow.Validate()))
 		fmt.Println()
 
 		// Break on Genesis Block
@@ -69,7 +68,7 @@ func (cli *CommandLine) createWallet() {
 
 	address := wallets.AddWallet()
 
-	fmt.Printf("New Address: %s\n", address)
+	fmt.Printf("BTC Address: %s\n", address)
 }
 
 func (cli *CommandLine) listAddresses() {

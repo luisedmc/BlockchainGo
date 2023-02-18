@@ -1,11 +1,5 @@
 package wallet
 
-import (
-	"fmt"
-)
-
-const walletFile = "./tmp/wallets.data"
-
 // Wallets holds multiple Wallets, keyed by the address
 type Wallets struct {
 	Wallets map[string]*Wallet
@@ -37,7 +31,7 @@ func (ws Wallets) GetAllAddresses() []string {
 
 func (ws *Wallets) AddWallet() string {
 	wallet := CreateWallet()
-	address := fmt.Sprintf("%s", wallet.GetAddress())
+	address := string(wallet.GetAddress())
 
 	ws.Wallets[address] = wallet
 
