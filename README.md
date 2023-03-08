@@ -11,7 +11,7 @@ Like i said before, this project was built for learning purposes. It is not a pr
 ## Table of Contents
 
 - [BlockchainGo](#blockchaingo)
-  - [Disclaimer](#disclaimer)
+    - [Disclaimer](#disclaimer)
 - [Table of Contents](#table-of-contents)
 - [Blockchain](#blockchain)
   - [What's Blockchain?](#whats-blockchain)
@@ -79,6 +79,7 @@ You can also build the binary file with `go build` and then run it using `./Bloc
 | `printChain`                            | Print all the blocks of the blockchain                            |
 | `getBalance -address ADDRESS`           | Get the balance of the given address                              |
 | `send -from FROM -to TO -amount AMOUNT` | Send the given amount of coins from one address to another        |
+| `createWallet`                          | Create a new BTC wallet address                                   |
 
 #### Example
 
