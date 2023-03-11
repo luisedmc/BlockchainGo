@@ -108,6 +108,9 @@ func ContinueBlockchain(address string) *Blockchain {
 
 		return err
 	})
+	if err != nil {
+		log.Panic(err)
+	}
 
 	chain := Blockchain{
 		LastHash: lastHash,
