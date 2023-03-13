@@ -95,14 +95,14 @@ func (cli *CommandLine) getBalance(address string) {
 	fmt.Printf("Address: %s\nBalance: %d\n", address, balance)
 }
 
-func (cli *CommandLine) send(from, to string, amount int) {
-	chain := blockchain.ContinueBlockchain(from)
+func (cli *CommandLine) send(sender, receiver string, amount int) {
+	chain := blockchain.ContinueBlockchain(sender)
 	defer chain.Database.Close()
 
-	transaction := blockchain.NewTransaction(from, to, amount, chain)
+	transaction := blockchain.NewTransaction(sender, receiver, amount, chain)
 	chain.AddBlock([]*tx.Transaction{transaction})
 
-	fmt.Printf("The amount of %d has been sent successfully.\nFrom: %s\tTo: %s", amount, from, to)
+	fmt.Printf("The amount of %d has been sent successfully.\nSender: %s\tReceiver: %s", amount, sender, receiver)
 }
 
 func (cli *CommandLine) RunCLI() {

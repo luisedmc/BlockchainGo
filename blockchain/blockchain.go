@@ -255,11 +255,11 @@ Work:
 }
 
 // NewTransaction creates a new transaction
-func NewTransaction(from, to string, amount int, chain *Blockchain) *tx.Transaction {
+func NewTransaction(sender, receiver string, amount int, chain *Blockchain) *tx.Transaction {
 	var inputs []tx.TXInput
 	var outputs []tx.TXOutput
 
-	acc, validOutputs := chain.FindSpendableOutputs(from, amount)
+	acc, validOutputs := chain.FindSpendableOutputs(sender, amount)
 
 	if acc < amount {
 		log.Panic("ERROR: Not enought funds!")
@@ -276,7 +276,7 @@ func NewTransaction(from, to string, amount int, chain *Blockchain) *tx.Transact
 			input := tx.TXInput{
 				ID:        txID,
 				Output:    out,
-				Signature: from,
+				Signature: sender,
 			}
 			inputs = append(inputs, input)
 		}
@@ -285,14 +285,14 @@ func NewTransaction(from, to string, amount int, chain *Blockchain) *tx.Transact
 	// List of outputs
 	outputs = append(outputs, tx.TXOutput{
 		Value:  amount,
-		PubKey: to,
+		PubKey: receiver,
 	})
 
 	// Amount stored in account > Amount sent in the transaction
 	if acc > amount {
 		outputs = append(outputs, tx.TXOutput{
 			Value:  acc - amount,
-			PubKey: from,
+			PubKey: sender,
 		})
 	}
 
